@@ -2,7 +2,7 @@ package mirage
 
 import (
 	"fmt"
-	"os"
+	"strings"
 )
 
 type Table struct {
@@ -48,13 +48,18 @@ func (table *Table) InBounds(row int, column int) bool {
 }
 
 func (table Table) Print() {
+	fmt.Print(table.format())
+}
+
+func (table Table) format() string {
 	// Find the width of the table
 	width := table.getWidth()
+	var builder strings.Builder
 
 	for range width {
-		os.Stdout.Write([]byte{'-'})
+		builder.WriteByte('-')
 	}
-	os.Stdout.Write([]byte{'\n'})
+	builder.WriteByte('\n')
 
 	for row := range table.rows {
 
@@ -63,35 +68,36 @@ func (table Table) Print() {
 			str := table.grid[row][column]
 
 			if str == "" {
-				os.Stdout.WriteString("| ")
+				builder.WriteString("| ")
 				for range columnWidth {
-					os.Stdout.WriteString(" ")
+					builder.WriteString(" ")
 				}
-				os.Stdout.WriteString(" ")
+				builder.WriteString(" ")
 			} else {
-				os.Stdout.WriteString("| ")
-				os.Stdout.WriteString(str)
+				builder.WriteString("| ")
+				builder.WriteString(str)
 
 				if len(str) < columnWidth {
 					padding := columnWidth - len(str)
 
 					for range padding {
-						os.Stdout.WriteString(" ")
+						builder.WriteString(" ")
 					}
 				}
 
-				os.Stdout.WriteString(" ")
+				builder.WriteString(" ")
 			}
 		}
 
-		os.Stdout.Write([]byte{'|', '\n'})
+		builder.Write([]byte{'|', '\n'})
 	}
 
 	for range width {
-		os.Stdout.Write([]byte{'-'})
+		builder.WriteByte('-')
 	}
-	os.Stdout.Write([]byte{'\n'})
+	builder.WriteByte('\n')
 
+	return builder.String()
 }
 
 func (table Table) getWidth() int {
