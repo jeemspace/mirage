@@ -14,6 +14,7 @@ Then, run `go mod tidy` or `go get github.com/jeemspace/mirage` in your command 
 ## Usage
 A simple table:
 ```go
+// Creates a table with 4 rows and 2 columns.
 table := mirage.NewTable(4, 2)
 
 table.Set(0, 0, "Year")
@@ -28,6 +29,7 @@ table.Set(2, 1, "$99,200")
 table.Set(3, 0, "2022")
 table.Set(3, 1, "$55,600")
 
+// Formats and prints the table.
 table.Print()
 ```
 
