@@ -67,7 +67,7 @@ func (table Table) Print() {
 				for range columnWidth {
 					os.Stdout.WriteString(" ")
 				}
-				os.Stdout.WriteString(" |")
+				os.Stdout.WriteString(" ")
 			} else {
 				os.Stdout.WriteString("| ")
 				os.Stdout.WriteString(str)
@@ -80,11 +80,11 @@ func (table Table) Print() {
 					}
 				}
 
-				os.Stdout.WriteString(" |")
+				os.Stdout.WriteString(" ")
 			}
 		}
 
-		os.Stdout.Write([]byte{'\n'})
+		os.Stdout.Write([]byte{'|', '\n'})
 	}
 
 	for range width {
@@ -101,10 +101,10 @@ func (table Table) getWidth() int {
 	// then add them all together to calculate the total width of the table.
 	for column := range table.columns {
 		cWidth, _ := table.getColumnWidth(column)
-		width += cWidth + 4
+		width += cWidth + 3
 	}
 
-	return width
+	return width + 1 // Add one for the final bar on the side
 }
 
 func (table Table) getColumnWidth(column int) (int, error) {
@@ -123,7 +123,7 @@ func (table Table) getColumnWidth(column int) (int, error) {
 		}
 	}
 
-	width += biggestItem // Add 2 for padding
+	width += biggestItem
 
 	return width, nil
 }
