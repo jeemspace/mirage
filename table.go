@@ -48,10 +48,11 @@ func (table *Table) InBounds(row int, column int) bool {
 }
 
 func (table Table) Print() {
-	fmt.Print(table.format())
+	fmt.Print(table.Format())
 }
 
-func (table Table) format() string {
+// Formats and returns a stylized and printable table.
+func (table Table) Format() string {
 	// Find the width of the table
 	width := table.getWidth()
 	var builder strings.Builder
