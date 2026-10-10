@@ -1,6 +1,8 @@
 # Mirage
 Elegant command line interfaces for Go.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/jeemspace/mirage.svg)](https://pkg.go.dev/github.com/jeemspace/mirage)
+
 ## Getting Started
 
 ### Installation
