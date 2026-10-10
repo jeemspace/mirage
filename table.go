@@ -11,6 +11,7 @@ type Table struct {
 	grid [][]string
 }
 
+// Creates a new table with the specified amount of empty rows and columns.
 func NewTable(rows int, columns int) Table {
 	// Create the table's grid.
 	grid := make([][]string, rows)
@@ -26,6 +27,7 @@ func NewTable(rows int, columns int) Table {
 	}
 }
 
+// Sets the value of a specific cell in the table.
 func (table *Table) Set(row int, column int, value string) error {
 	if table.InBounds(row, column) {
 		table.grid[row][column] = value
@@ -35,6 +37,7 @@ func (table *Table) Set(row int, column int, value string) error {
 	return fmt.Errorf("Table position is out of bounds.")
 }
 
+// Returns true if the specified cell is within the bounds of the table, or false if it does not exist.
 func (table *Table) InBounds(row int, column int) bool {
 	// Make sure the row isn't out of bounds
 	if 0 <= row && row < table.rows {
@@ -47,6 +50,7 @@ func (table *Table) InBounds(row int, column int) bool {
 	return false
 }
 
+// Formats and prints the stylized table.
 func (table Table) Print() {
 	fmt.Print(table.Format())
 }
