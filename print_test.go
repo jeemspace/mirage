@@ -8,6 +8,11 @@ import (
 func Test(t *testing.T) {
 	table := NewTable(4, 4)
 
+	table.Separator = ""
+	table.Padding = 1
+	table.DoHorizontalBars = false
+	table.TrimRows = true
+
 	err := table.Set(0, 0, "Employee Name")
 	err = table.Set(0, 1, "Department")
 	err = table.Set(0, 2, "Salary ($/year)")

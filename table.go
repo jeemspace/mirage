@@ -6,9 +6,12 @@ import (
 )
 
 type Table struct {
-	rows, columns int
-
-	grid [][]string
+	rows, columns    int
+	grid             [][]string
+	Separator        string
+	Padding          int
+	DoHorizontalBars bool
+	TrimRows         bool
 }
 
 // Creates a new table with the specified amount of empty rows and columns.
@@ -21,9 +24,19 @@ func NewTable(rows int, columns int) Table {
 	}
 
 	return Table{
-		rows,
-		columns,
-		grid,
+		rows:    rows,
+		columns: columns,
+		grid:    grid,
+
+		// The separator to use in between each cell in a column.
+		Separator: "|",
+		// The number of spaces to use between each cell's value and the separator
+		Padding: 1,
+		// Whether to add a horizontal bar on the top and bottom of the table.
+		DoHorizontalBars: true,
+		// Whether to trim the leading and trailing padding for each rows.
+		// Best for when no separator is being used.
+		TrimRows: false,
 	}
 }
 
@@ -61,10 +74,13 @@ func (table Table) Format() string {
 	width := table.getWidth()
 	var builder strings.Builder
 
-	for range width {
-		builder.WriteByte('-')
+	if table.DoHorizontalBars {
+		// Print the first horizontal bar
+		for range width {
+			builder.WriteByte('-')
+		}
+		builder.WriteByte('\n')
 	}
-	builder.WriteByte('\n')
 
 	for row := range table.rows {
 
@@ -72,50 +88,80 @@ func (table Table) Format() string {
 			columnWidth, _ := table.getColumnWidth(column)
 			str := table.grid[row][column]
 
-			if str == "" {
-				builder.WriteString("| ")
-				for range columnWidth {
-					builder.WriteString(" ")
+			builder.WriteString(table.Separator)
+
+			// Add the leading padding to the cell
+			if !table.TrimRows || column > 0 {
+				for range table.Padding {
+					builder.WriteByte(' ')
 				}
-				builder.WriteString(" ")
+			}
+
+			if str == "" {
+				// The cell's value is empty, so fill it in with spaces.
+				for range columnWidth {
+					builder.WriteByte(' ')
+				}
 			} else {
-				builder.WriteString("| ")
 				builder.WriteString(str)
 
+				// If the cell's value is not as long as the longest string in the column, then fill in the difference
+				// with spaces.
 				if len(str) < columnWidth {
-					padding := columnWidth - len(str)
+					fill := columnWidth - len(str)
 
-					for range padding {
-						builder.WriteString(" ")
+					for range fill {
+						builder.WriteByte(' ')
 					}
 				}
+			}
 
-				builder.WriteString(" ")
+			// Add the trailing padding to the cell
+			if !(column == (table.columns-1) && table.TrimRows) {
+				for range table.Padding {
+					builder.WriteByte(' ')
+				}
 			}
 		}
 
-		builder.Write([]byte{'|', '\n'})
+		builder.WriteString(table.Separator)
+		builder.WriteByte('\n')
 	}
 
-	for range width {
-		builder.WriteByte('-')
+	if table.DoHorizontalBars {
+		// Print the second horizontal bar
+		for range width {
+			builder.WriteByte('-')
+		}
+		builder.WriteByte('\n')
 	}
-	builder.WriteByte('\n')
 
 	return builder.String()
 }
 
 func (table Table) getWidth() int {
-	width := 0
+	separatorLength := len(table.Separator)
+
+	// Immediately count the separator length into the width because there is always a separator on the left side
+	// before anything is printed.
+	width := separatorLength
 
 	// Find the biggest length of string in each column to calculate the width of that column,
 	// then add them all together to calculate the total width of the table.
 	for column := range table.columns {
-		cWidth, _ := table.getColumnWidth(column)
-		width += cWidth + 3
+		columnWidth, _ := table.getColumnWidth(column)
+
+		if table.TrimRows && (column == 0 || column == (table.columns-1)) {
+			// If trimming rows is enabled, and if the first of last column is being counted, then only count
+			// the padding once, because there will be no trailing padding.
+			width += columnWidth + separatorLength + table.Padding
+		} else {
+			// Multiply padding by two, because there is padding on both sides of a cell.
+			width += columnWidth + separatorLength + (table.Padding * 2)
+		}
 	}
 
-	return width + 1 // Add one for the final bar on the side
+	return width
 }
 
 func (table Table) getColumnWidth(column int) (int, error) {
