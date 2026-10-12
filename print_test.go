@@ -34,10 +34,6 @@ func Benchmark(b *testing.B) {
 	for b.Loop() {
 		table := NewTable(3, 4)
 
-		table.DoHorizontalBars = true
-		table.Separator = "|"
-		table.TrimRows = false
-
 		table.SetTitle(0, "Employee Name")
 		table.SetTitle(1, "Department")
 		table.SetTitle(2, "Salary ($/year)")
