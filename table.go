@@ -6,8 +6,11 @@ import (
 )
 
 type Table struct {
-	rows, columns    int
-	grid             [][]string
+	rows, columns int
+	grid          [][]string
+	titles        []string
+	hasTitles     bool
+
 	Separator        string
 	Padding          int
 	DoHorizontalBars bool
@@ -23,10 +26,14 @@ func NewTable(rows int, columns int) Table {
 		grid[i] = make([]string, columns)
 	}
 
+	titles := make([]string, columns)
+
 	return Table{
-		rows:    rows,
-		columns: columns,
-		grid:    grid,
+		rows:      rows,
+		columns:   columns,
+		grid:      grid,
+		titles:    titles,
+		hasTitles: false,
 
 		// The separator to use in between each cell in a column.
 		Separator: "|",
@@ -48,6 +55,17 @@ func (table *Table) Set(row int, column int, value string) error {
 	}
 
 	return fmt.Errorf("Table position is out of bounds.")
+}
+
+// Set the title for a specific column.
+func (table *Table) SetTitle(column int, title string) error {
+	if table.InBounds(0, column) {
+		table.titles[column] = title
+		table.hasTitles = true
+		return nil
+	}
+
+	return fmt.Errorf("Column is out of bounds.")
 }
 
 // Returns true if the specified cell is within the bounds of the table, or false if it does not exist.
@@ -74,6 +92,10 @@ func (table Table) Format() string {
 	width := table.getWidth()
 	var builder strings.Builder
 
+	if table.hasTitles {
+		table.writeTitles(&builder)
+	}
+
 	if table.DoHorizontalBars {
 		// Print the first horizontal bar
 		for range width {
@@ -92,16 +114,12 @@ func (table Table) Format() string {
 
 			// Add the leading padding to the cell
 			if !table.TrimRows || column > 0 {
-				for range table.Padding {
-					builder.WriteByte(' ')
-				}
+				table.writeSpaces(&builder, table.Padding)
 			}
 
 			if str == "" {
 				// The cell's value is empty, so fill it in with spaces.
-				for range columnWidth {
-					builder.WriteByte(' ')
-				}
+				table.writeSpaces(&builder, columnWidth)
 			} else {
 				builder.WriteString(str)
 
@@ -110,17 +128,13 @@ func (table Table) Format() string {
 				if len(str) < columnWidth {
 					fill := columnWidth - len(str)
 
-					for range fill {
-						builder.WriteByte(' ')
-					}
+					table.writeSpaces(&builder, fill)
 				}
 			}
 
 			// Add the trailing padding to the cell
 			if !(column == (table.columns-1) && table.TrimRows) {
-				for range table.Padding {
-					builder.WriteByte(' ')
-				}
+				table.writeSpaces(&builder, table.Padding)
 			}
 		}
 
@@ -137,6 +151,34 @@ func (table Table) Format() string {
 	}
 
 	return builder.String()
+}
+
+func (table *Table) writeTitles(builder *strings.Builder) {
+	for column, title := range table.titles {
+		table.writeSpaces(builder, len(table.Separator))
+
+		if !table.TrimRows || column > 0 {
+			table.writeSpaces(builder, table.Padding)
+		}
+
+		builder.WriteString(title)
+
+		columnWidth, _ := table.getColumnWidth(column)
+		titleLength := len(title)
+
+		if titleLength < columnWidth {
+			table.writeSpaces(builder, columnWidth-titleLength)
+		}
+
+		table.writeSpaces(builder, table.Padding)
+	}
+	builder.WriteByte('\n')
+}
+
+func (Table) writeSpaces(builder *strings.Builder, amount int) {
+	for range amount {
+		builder.WriteByte(' ')
+	}
 }
 
 func (table Table) getWidth() int {
@@ -169,7 +211,7 @@ func (table Table) getColumnWidth(column int) (int, error) {
 
 	// TODO: Check if the column is within bounds
 
-	biggestItem := 0
+	biggestItem := len(table.titles[column])
 
 	for row := range table.rows {
 		str := table.grid[row][column]
